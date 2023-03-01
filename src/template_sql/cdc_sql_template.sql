@@ -17,24 +17,24 @@ USING (
   WITH
     S0 AS (
       SELECT * FROM `${base_table}`
-      WHERE recordstamp >= (
-        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+      WHERE __timestamp >= (
+        SELECT IFNULL(MAX(__timestamp), TIMESTAMP('1940-12-25 05:30:00+00'))
         FROM `${target_table}`)
     ),
     -- To handle occasional dups from SLT connector
     S1 AS (
       SELECT * EXCEPT(row_num)
       FROM (
-        SELECT *, ROW_NUMBER() OVER (PARTITION BY ${keys}, recordstamp ORDER BY recordstamp) AS row_num
+        SELECT *, ROW_NUMBER() OVER (PARTITION BY ${keys}, __timestamp ORDER BY __timestamp) AS row_num
         FROM S0
       )
       WHERE row_num = 1
     ),
     T1 AS (
-      SELECT ${keys}, MAX(recordstamp) AS recordstamp
+      SELECT ${keys}, MAX(__timestamp) AS __timestamp
       FROM `${base_table}`
-      WHERE recordstamp >= (
-        SELECT IFNULL(MAX(recordstamp), TIMESTAMP('1940-12-25 05:30:00+00'))
+      WHERE __timestamp >= (
+        SELECT IFNULL(MAX(__timestamp), TIMESTAMP('1940-12-25 05:30:00+00'))
         FROM `${target_table}`)
       GROUP BY ${keys}
     )
@@ -42,16 +42,16 @@ USING (
   FROM S1
   INNER JOIN T1
     ON ${p_key_sub_query}
-      AND S1.recordstamp = T1.recordstamp
+      AND S1.__timestamp = T1.__timestamp
   ) AS S
 ON ${p_key}
--- ## CORTEX-CUSTOMER You can use "`is_deleted` = true" condition along with "operation_flag = 'D'",
+-- ## CORTEX-CUSTOMER You can use "`is_deleted` = true" condition along with "__operation_type = 'D'",
 -- if that is applicable to your CDC set up.
-WHEN NOT MATCHED AND IFNULL(S.operation_flag, 'I') != 'D' THEN
+WHEN NOT MATCHED AND IFNULL(S.__operation_type, 'I') NOT IN ('D', 'X') THEN
   INSERT (${fields})
   VALUES (${fields})
-WHEN MATCHED AND S.operation_flag = 'D' THEN
+WHEN MATCHED AND S.__operation_type IN ('D', 'X') THEN
   DELETE
-WHEN MATCHED AND S.operation_flag = 'U' THEN
+WHEN MATCHED AND S.__operation_type = 'U' THEN
   UPDATE SET ${update_fields};
 
