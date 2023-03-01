@@ -39,7 +39,7 @@ _GENERATED_SQL_DIR = "../generated_sql"
 
 
 def process_table(table_config: dict, source_dataset: str, target_dataset: str,
-                  gen_test: str) -> None:
+                  gen_test: str, rt_dataset: str = None) -> None:
     try:
 
         table_name = table_config.get("base_table")
@@ -69,6 +69,10 @@ def process_table(table_config: dict, source_dataset: str, target_dataset: str,
                          cdc_table)
             generate_cdc_dag_files(raw_table, cdc_table, load_frequency,
                                    gen_test)
+
+        if rt_dataset:
+            view = rt_dataset + "." + target_table
+            generate_runtime_view(raw_table, view)
 
         logging.info("✅ == Processed %s ==", raw_table)
     except Exception as e:
@@ -107,6 +111,12 @@ def main():
         sql_flavour = "ECC"
     else:
         sql_flavour = sys.argv[5]
+    
+    if not sys.argv[6]:
+        logging.info("Target RT Dataset not provided. Will skip additional RT views")
+        rt_dataset = None
+    else:
+        rt_dataset = sys.argv[6]
 
     os.makedirs(_GENERATED_DAG_DIR, exist_ok=True)
     os.makedirs(_GENERATED_SQL_DIR, exist_ok=True)
@@ -145,7 +155,7 @@ def main():
     for table_config in table_configs:
         threads.append(
             pool.submit(process_table, table_config, source_dataset,
-                        target_dataset, gen_test))
+                        target_dataset, gen_test, rt_dataset))
     if len(threads) > 0:
         logging.info("Waiting for all tasks to complete...")
         futures.wait(threads)

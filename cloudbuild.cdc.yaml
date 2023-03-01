@@ -30,11 +30,11 @@ steps:
         "${_CURRENCY}" "${_LANGUAGE}" \
         "${_GCS_LOG_BUCKET}" "${_GCS_BUCKET}" \
         "${_DEPLOY_CDC}" "${_GEN_EXT}" \
-        "${_RUN_EXT_SQL}"
+        "${_RUN_EXT_SQL}" "${_DS_CDC_RT}"
 
       if [[ "$${_DEPLOY_CDC_}" == "true" ]] ; then
         echo "Running config_reader"
-        cd ./src/ && python config_reader.py $$_PJID_SRC_ $$_DS_RAW_ $$_DS_CDC_ $$_TEST_DATA_ $$_SQL_FLAVOUR_
+        cd ./src/ && python config_reader.py $$_PJID_SRC_ $$_DS_RAW_ $$_DS_CDC_ $$_TEST_DATA_ $$_SQL_FLAVOUR_ $$_DS_CDC_RT_
       fi
   # Unfold hierarchies - dag_hierarchies_module.py will only be copied if datasets exist
   - name: 'gcr.io/kittycorn-public/deploy-kittycorn-cdc:v1.5'

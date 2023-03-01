@@ -51,14 +51,16 @@ make_defaults(){
 }
 
 # Converting Cloud Build substitutions to env variables.
-export _PJID_SRC_="${1}"; export _PJID_TGT_="${2}"
-export _DS_RAW_="${3}"; export _DS_CDC_="${4}"
-export _MANDT_="${5}"; export _LOCATION_="${6}"
+export _PJID_SRC_="${1}"; export _PJID_TGT_="${2}";
+export _DS_RAW_="${3}"; export _DS_CDC_="${4}";
+export _MANDT_="${5}"; export _LOCATION_="${6}";
 export _SQL_FLAVOUR_="${7}"; export _TEST_DATA_="${8}";
 export _CURRENCY_="${9}"; export _LANGUAGE_="${10}";
 export _GCS_LOG_BUCKET_="${11}"; export _GCS_BUCKET_="${12}";
 export _DEPLOY_CDC_="${13}"; export _GEN_EXT_="${14}";
-export _RUN_EXT_SQL_="${15}"
+export _RUN_EXT_SQL_="${15}"; 
+
+export _DS_CDC_RT_="${16}";
 
 if [ -f "${CONFIG_FILE}" ]
 then
@@ -223,6 +225,14 @@ then
     export _RUN_EXT_SQL_="${RUN_EXT_SQL}"
 else
     export RUN_EXT_SQL="${_RUN_EXT_SQL_}"
+fi
+
+# Custom values
+if [[ "${_DS_CDC_RT_}" == "" ]]
+then
+    export _DS_CDC_RT="${DS_CDC_RT}"
+else
+    export DS_CDC_RT="${_DS_CDC_RT_}"
 fi
 
 # SFDC values come from config.env
