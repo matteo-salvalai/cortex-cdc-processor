@@ -157,7 +157,7 @@ steps:
           gsutil -m cp -r './generated_dag/*.ini' gs://$${_GCS_BUCKET_}/data/api_input
         fi
 
-logsBucket: 'gs://$_GCS_LOG_BUCKET'
+logsBucket: 'gs://$_GCS_LOG_BUCKET/logs'
 timeout: 7200s
 options:
   substitution_option: "ALLOW_LOOSE"
